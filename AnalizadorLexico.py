@@ -1,9 +1,10 @@
 class Token:
-    def __init__(self,tipo, lexema, fila, columna):
+    def __init__(self, tipo, lexema, fila, columna):
         self.tipo = tipo
         self.lexema = lexema
         self.fila = fila
         self.columna = columna
+
 
 palabrasReservadas = ("and", "bool", "break", "do", "else", "end", "false",
                       "for", "function", "if", "input", "loop", "next", "num",
@@ -22,130 +23,281 @@ end
 
 '''
 
+
 def delta(est, c):
-    #est = estado; c = caracter
+    # est = estado; c = caracter
+
     if est == 0:
-        pass
+        if c == ">":
+            return (1, 0, None)
+        elif c == "<":
+            return (4, 0, None)
+        elif c == "<":
+            return (4, 0, None)
+        elif c == "+":
+            return (7, 0, None)
+        elif c == "-":
+            return (11, 0, None)
+        elif c == "*":
+            return (15, 0, None)
+        elif c == "/":
+            return (18, 0, None)
+        elif c == "%":
+            return (21, 0, None)
+        elif c == ":":
+            return (24, 0, None)
+        elif c == "=":
+            return (27, 0, None)
+        elif c == "!":
+            return (30, 0, None)
+        elif c == "{":
+            return (0, 0, "tk_llave_izq")
+        elif c == "}":
+            return (0, 0, "tk_llave_der")
+        elif c == "(":
+            return (0, 0, "tk_par_izq")
+        elif c == ")":
+            return (0, 0, "tk_par_der")
+        elif c == ",":
+            return (0, 0, "tk_coma")
+        elif c == ";":
+            return (0, 0, "tk_puntoycoma")
+        elif c.isalpha():
+            return (38, 0, None)
+        elif c == "@":
+            return (42, 0, None)
+        elif c.isdigit():
+            return (45, 0, None)
+        elif c == "#":
+            return (51, 0, None)
+        elif c == " ":
+            return (53, 0, None)
+        elif c == "\n":
+            return (0, 0, "saltoLinea")
+        else:
+            return (29, 0, "Error léxico")
+
     elif est == 1:
-        pass
-    elif est == 2:
-        return -1
-    elif est == 3:
-        return -1
+        if c == "=":
+            return (0, 0, "tk_mayor_igual")
+        else:
+            return (0, 1, "tk_mayor")
+    # elif est == 2:
+    #     return -1
+    # elif est == 3:
+    #     return -1
     elif est == 4:
-        pass
-    elif est == 5:
-        return -1
-    elif est == 6:
-        return -1
+        if c == "=":
+            return (0, 0, "tk_menor_igual")
+        else:
+            return (0, 1, "tk_menor")
+    # elif est == 5:
+    #     return -1
+    # elif est == 6:
+    #     return -1
     elif est == 7:
-        pass
-    elif est == 8:
-        return -1
-    elif est == 9:
-        return -1
-    elif est == 10:
-        return -1
+        if c == "=":
+            return (0, 0, "tk_sum_asig")
+        elif c == "+":
+            return (0, 0, "tk_incremento")
+        else:
+            return (0, 1, "tk_mas")
+    # elif est == 8:
+    #     return -1
+    # elif est == 9:
+    #     return -1
+    # elif est == 10:
+    #     return -1
     elif est == 11:
-        pass
-    elif est == 12:
-        return -1
-    elif est == 13:
-        return -1
-    elif est == 14:
-        return -1
+        if c == "=":
+            return (0, 0, "tk_res_asig")
+        elif c == "+":
+            return (0, 0, "tk_decremento")
+        else:
+            return (0, 1, "tk_menos")
+    # elif est == 12:
+    #     return -1
+    # elif est == 13:
+    #     return -1
+    # elif est == 14:
+    #     return -1
     elif est == 15:
-        pass
-    elif est == 16:
-        return -1
-    elif est == 17:
-        return -1
+        if c == "=":
+            return (0, 0, "tk_mul_asig")
+        else:
+            return (0, 1, "tk_mul")
+    # elif est == 16:
+    #     return -1
+    # elif est == 17:
+    #     return -1
     elif est == 18:
-        pass
-    elif est == 19:
-        return -1
-    elif est == 20:
-        return -1
+        if c == "=":
+            return (0, 0, "tk_div_asig")
+        else:
+            return (0, 1, "tk_div")
+    # elif est == 19:
+    #     return -1
+    # elif est == 20:
+    #     return -1
     elif est == 21:
-        pass
-    elif est == 22:
-        return -1
-    elif est == 23:
-        return -1
+        if c == "=":
+            return (0, 0, "tk_mod_asig")
+        else:
+            return (0, 1, "tk_mod")
+    # elif est == 22:
+    #     return -1
+    # elif est == 23:
+    #     return -1
     elif est == 24:
-        pass
-    elif est == 25:
-        return -1
-    elif est == 26:
-        return -1
+        if c == "=":
+            return (0, 0, "tk_asignacion")
+        else:
+            return (0, 1, "tk_dospuntos")
+    # elif est == 25:
+    #     return -1
+    # elif est == 26:
+    #     return -1
     elif est == 27:
-        pass
-    elif est == 28:
-        return -1
-    elif est == 29:
-        pass
+        if c == "=":
+            return (0, 0, "tk_igualdad")
+        else:
+            return (29, 0, "Error léxico")
+    # elif est == 28:
+    #     return -1
+    # elif est == 29:
+    #     pass
     elif est == 30:
-        pass
-    elif est == 31:
-        return -1
-    elif est == 32:
-        return -1
-    elif est == 33:
-        return -1
-    elif est == 34:
-        return -1
-    elif est == 35:
-        return -1
-    elif est == 36:
-        return -1
-    elif est == 37:
-        return -1
+        if c == "=":
+            return (0, 0, "tk_diferente")
+        else:
+            return (29, 0, "Error léxico")
+    # elif est == 31:
+    #     return -1
+    # elif est == 32:
+    #     return -1
+    # elif est == 33:
+    #     return -1
+    # elif est == 34:
+    #     return -1
+    # elif est == 35:
+    #     return -1
+    # elif est == 36:
+    #     return -1
+    # elif est == 37:
+    #     return -1
     elif est == 38:
-        pass
-    elif est == 39:
-        return -1
+        if c.isalpha():
+            return (38, 0, None)
+        elif c.isdigit():
+            return (40, 0, None)
+        else:
+            return (0, 1, "REVISAR")
+    # elif est == 39:
+    #     return -1
     elif est == 40:
-        pass
-    elif est == 41:
-        return -1
+        if c.isalnum():
+            return (40, 0, None)
+        else:
+            return (0, 1, "id")
+    # elif est == 41:
+    #     return -1
     elif est == 42:
-        pass
+        if c.isalpha():
+            return (43, 0, None)
+        else:
+            return (29, 0, "Error léxico")
     elif est == 43:
-        pass
-    elif est == 44:
-        return -1
+        if c.isalnum():
+            return (43, 0, None)
+        else:
+            return (0, 1, "fid")
+    # elif est == 44:
+    #     return -1
     elif est == 45:
-        pass
+        if c.isdigit():
+            return (45, 0, None)
+        elif c == ".":
+            return (46, 0, None)
+        else:
+            return (0, 1, "num")
     elif est == 46:
-        pass
-    elif est == 47:
-        return -1
-    elif est == 48:
-        return -1
+        if c.isdigit():
+            return (49, 0, None)
+        else:
+            return (0, 2, "num")
+    # elif est == 47:
+    #     return -1
+    # elif est == 48:
+    #     return -1
     elif est == 49:
-        pass
-    elif est == 50:
-        return -1
+        if c.isdigit():
+            return (49, 0, None)
+        else:
+            return (0, 1, "num")
+    # elif est == 50:
+    #     return -1
     elif est == 51:
-        pass
-    elif est == 52:
-        pass
+        if c == "\n":
+            return (0, 0, "comentario")
+        else:
+            return (51, 0, None)
+    # elif est == 52:
+    #     pass
     elif est == 53:
-        pass
-    elif est == 54:
-        pass
-    elif est == 55:
-        return -1
+        if c == " ":
+            return (53, 0, None)
+        else:
+            return (0, 1, "espacios")
+    # elif est == 54:
+    #     pass
+    # elif est == 55:
+    #     return -1
     else:
-        print("error")
-
-
+        print("errorEnEstados")
 
 
 def analizarLexico(codigo):
-    linea=0
-    estadoAux=0
+    fila = 0
+    columna = 0
+    estadoAux = 0
+    buffer = ""
+    devueltos = ""
     for caracter in codigo:
-        estadoAux = delta(estadoAux,caracter)
+        buffer += caracter
+        columna += 1
+        estadoAux, devolver, tipoToken = delta(estadoAux, caracter)
 
-analizarLexico(cod)
+        if tipoToken is not None:
+
+            if devolver > 0:
+                endLoc = len(buffer)
+                startLoc = endLoc - devolver
+                devueltos = buffer[startLoc: endLoc]
+                nuevoBuffer = buffer[0: startLoc]
+                columna -= devolver
+            else:
+                nuevoBuffer = buffer
+
+            buffer = ""
+            if tipoToken == "saltoLinea" or tipoToken == "espacios" or tipoToken == "comentario" :
+                fila += 1
+            else:
+                print(tipoToken, nuevoBuffer, fila, (columna-len(nuevoBuffer)))
+
+            for caracterDev in devueltos:
+                buffer += caracterDev
+                columna += 1
+                estadoAux, devolver, tipoToken = delta(estadoAux, caracter)
+                ###### estaba resolviendo que hacer con los devueltos
+            devueltos = ""
+
+
+
+# analizarLexico(cod)
+mensaje9 = "Hola Mundo"
+endLoc = len(mensaje9)
+startLoc = endLoc - 2
+mensaje9b = mensaje9[startLoc: endLoc]
+mensaje9c = mensaje9[0: startLoc]
+print(mensaje9b)
+print(mensaje9c)
