@@ -5,14 +5,24 @@ class Token:
         self.fila = fila
         self.columna = columna
 
+    def __str__(self) -> str:
+        if self.lexema in palabrasReservadas:
+            return "<" + str(self.lexema) + "," + str(self.fila) + "," + str(self.columna) + ">"
+        else:
+            if self.tipo == "id":
+                return "<" + str(self.tipo) + "," + str(self.lexema) + "," + str(self.fila) + "," + str(self.columna) + ">"
+            elif self.tipo == "tk_num" or self.tipo == "fid":
+                return "<" + str(self.tipo) + "," + str(self.lexema) + "," + str(self.fila) + "," + str(self.columna) + ">"
+            else:
+                return "<" + str(self.tipo) + "," + str(self.fila) + "," + str(self.columna) + ">"
+
 
 palabrasReservadas = ("and", "bool", "break", "do", "else", "end", "false",
                       "for", "function", "if", "input", "loop", "next", "num",
                       "or", "print", "repeat", "return", "true", "unless",
                       "until", "var", "when", "while")
 
-cod = '''
-var z:num;
+cod = '''var z:num;
 z := 0;
 while (z < 10)
   {
@@ -20,8 +30,35 @@ while (z < 10)
   print z;
   }
 end
+# salida: 1 2 3 4 5 6 7 8 9 10'''
 
-'''
+cod2 ='''## función min(x, y)
+function @min:num (x:num, y:num)
+  {
+  when ((x < y) == true) do return x;
+  return y;
+  }
+
+## función max(x, y)
+function @max:num (x:num, y:num)
+  {
+  if ((x < y) == false) do
+    {
+    return x;
+    }
+  else
+    {
+    return y;
+    }
+  }
+
+print @min(1,2);
+print @max(1,2);
+a := 10;
+a %= 2;
+end'''
+
+cod3 = '''2.5598055while3!=88¬56.a'''
 
 
 def delta(est, c):
@@ -71,7 +108,7 @@ def delta(est, c):
         elif c == "#":
             return (51, 0, None)
         elif c == " ":
-            return (53, 0, None)
+            return (0, 0, "espacio")
         elif c == "\n":
             return (0, 0, "saltoLinea")
         else:
@@ -205,7 +242,7 @@ def delta(est, c):
         if c.isalpha():
             return (43, 0, None)
         else:
-            return (29, 0, "Error léxico")
+            return (0, 0, "Error léxico")
     elif est == 43:
         if c.isalnum():
             return (43, 0, None)
@@ -219,12 +256,12 @@ def delta(est, c):
         elif c == ".":
             return (46, 0, None)
         else:
-            return (0, 1, "num")
+            return (0, 1, "tk_num")
     elif est == 46:
         if c.isdigit():
             return (49, 0, None)
         else:
-            return (0, 2, "num")
+            return (0, 2, "tk_num")
     # elif est == 47:
     #     return -1
     # elif est == 48:
@@ -233,7 +270,7 @@ def delta(est, c):
         if c.isdigit():
             return (49, 0, None)
         else:
-            return (0, 1, "num")
+            return (0, 1, "tk_num")
     # elif est == 50:
     #     return -1
     elif est == 51:
@@ -243,11 +280,11 @@ def delta(est, c):
             return (51, 0, None)
     # elif est == 52:
     #     pass
-    elif est == 53:
-        if c == " ":
-            return (53, 0, None)
-        else:
-            return (0, 1, "espacios")
+    # elif est == 53:
+    #     if c == " ":
+    #         return (53, 0, None)
+    #     else:
+    #         return (0, 1, "espacios")
     # elif est == 54:
     #     pass
     # elif est == 55:
@@ -257,47 +294,113 @@ def delta(est, c):
 
 
 def analizarLexico(codigo):
-    fila = 0
-    columna = 0
+    codigo += " "
+    fila = 1
+    columna = 1
     estadoAux = 0
     buffer = ""
     devueltos = ""
+    bucleInterno = True
     for caracter in codigo:
+        if not bucleInterno:
+            break
         buffer += caracter
         columna += 1
         estadoAux, devolver, tipoToken = delta(estadoAux, caracter)
 
         if tipoToken is not None:
 
+            if tipoToken == "Error léxico":
+                print("Error léxico(línea:" + str(fila) + ",posición:" + str(columna-1) + ")")
+                break
+
             if devolver > 0:
                 endLoc = len(buffer)
                 startLoc = endLoc - devolver
-                devueltos = buffer[startLoc: endLoc]
+                devueltos += buffer[startLoc: endLoc]
                 nuevoBuffer = buffer[0: startLoc]
                 columna -= devolver
             else:
                 nuevoBuffer = buffer
 
             buffer = ""
-            if tipoToken == "saltoLinea" or tipoToken == "espacios" or tipoToken == "comentario" :
+            if tipoToken == "saltoLinea" or tipoToken == "comentario":
                 fila += 1
+                columna = 1
+            elif tipoToken == "espacio":
+                pass
             else:
-                print(tipoToken, nuevoBuffer, fila, (columna-len(nuevoBuffer)))
+                if nuevoBuffer in palabrasReservadas:
+                    token = Token(nuevoBuffer, nuevoBuffer, fila, (columna - len(nuevoBuffer)))
+                    # print(nuevoBuffer, fila, (columna - len(nuevoBuffer)))
+                    print(token)
+                else:
+                    if tipoToken == "REVISAR":
+                        #print("id", nuevoBuffer, fila, (columna - len(nuevoBuffer)))
+                        token = Token("id", nuevoBuffer, fila, (columna - len(nuevoBuffer)))
+                        print(token)
+                    elif tipoToken == "tk_num" or tipoToken == "fid":
+                        #print(tipoToken, nuevoBuffer, fila, (columna - len(nuevoBuffer)))
+                        token = Token(tipoToken, nuevoBuffer, fila, (columna - len(nuevoBuffer)))
+                        print(token)
+                    else:
+                        #print(tipoToken, fila, (columna - len(nuevoBuffer)))
+                        token = Token(tipoToken, nuevoBuffer, fila, (columna - len(nuevoBuffer)))
+                        print(token)
 
             for caracterDev in devueltos:
                 buffer += caracterDev
                 columna += 1
                 estadoAux, devolver, tipoToken = delta(estadoAux, caracter)
-                ###### estaba resolviendo que hacer con los devueltos
+
+                if tipoToken is not None:
+
+                    if tipoToken == "Error léxico":
+                        print("Error léxico(línea:" + str(fila) + ",posición:" + str(columna-1) + ")")
+                        bucleInterno = False
+                        break
+
+                    if devolver > 0:
+                        endLoc = len(buffer)
+                        startLoc = endLoc - devolver
+                        devueltos += buffer[startLoc: endLoc]
+                        nuevoBuffer = buffer[0: startLoc]
+                        columna -= devolver
+                    else:
+                        nuevoBuffer = buffer
+
+                    buffer = ""
+                    if tipoToken == "saltoLinea" or tipoToken == "comentario":
+                        fila += 1
+                        columna = 1
+                    elif tipoToken == "espacio":
+                        pass
+                    else:
+                        if nuevoBuffer in palabrasReservadas:
+                            token = Token(nuevoBuffer, nuevoBuffer, fila, (columna - len(nuevoBuffer)))
+                            # print(nuevoBuffer, fila, (columna - len(nuevoBuffer)))
+                            print(token)
+                        else:
+                            if tipoToken == "REVISAR":
+                                # print("id", nuevoBuffer, fila, (columna - len(nuevoBuffer)))
+                                token = Token("id", nuevoBuffer, fila, (columna - len(nuevoBuffer)))
+                                print(token)
+                            elif tipoToken == "tk_num" or tipoToken == "fid":
+                                # print(tipoToken, nuevoBuffer, fila, (columna - len(nuevoBuffer)))
+                                token = Token(tipoToken, nuevoBuffer, fila, (columna - len(nuevoBuffer)))
+                                print(token)
+                            else:
+                                # print(tipoToken, fila, (columna - len(nuevoBuffer)))
+                                token = Token(tipoToken, nuevoBuffer, fila, (columna - len(nuevoBuffer)))
+                                print(token)
             devueltos = ""
 
 
-
-# analizarLexico(cod)
-mensaje9 = "Hola Mundo"
-endLoc = len(mensaje9)
-startLoc = endLoc - 2
-mensaje9b = mensaje9[startLoc: endLoc]
-mensaje9c = mensaje9[0: startLoc]
-print(mensaje9b)
-print(mensaje9c)
+analizarLexico(cod3)
+# mensaje9 = "Hola Mundo"
+# endLoc = len(mensaje9)
+# startLoc = endLoc - 2
+# mensaje9b = mensaje9[startLoc: endLoc]
+# mensaje9c = mensaje9[0: startLoc]
+# print(mensaje9b)
+# print(mensaje9c)
