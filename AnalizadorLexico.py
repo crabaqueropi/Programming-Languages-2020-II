@@ -22,44 +22,6 @@ palabrasReservadas = ("and", "bool", "break", "do", "else", "end", "false",
                       "or", "print", "repeat", "return", "true", "unless",
                       "until", "var", "when", "while")
 
-cod = '''var z:num;
-z := 0;
-while (z < 10)
-  {
-  z := z + 1;
-  print z;
-  }
-end
-# salida: 1 2 3 4 5 6 7 8 9 10'''
-
-cod2 ='''## función min(x, y)
-function @min:num (x:num, y:num)
-  {
-  when ((x < y) == true) do return x;
-  return y;
-  }
-
-## función max(x, y)
-function @max:num (x:num, y:num)
-  {
-  if ((x < y) == false) do
-    {
-    return x;
-    }
-  else
-    {
-    return y;
-    }
-  }
-
-print @min(1,2);
-print @max(1,2);
-a := 10;
-a %= 2;
-end'''
-
-cod3 = '''2.5598055while3!=88¬56.a'''
-
 
 def delta(est, c):
     # est = estado; c = caracter
@@ -351,7 +313,7 @@ def analizarLexico(codigo):
             for caracterDev in devueltos:
                 buffer += caracterDev
                 columna += 1
-                estadoAux, devolver, tipoToken = delta(estadoAux, caracter)
+                estadoAux, devolver, tipoToken = delta(estadoAux, caracterDev)
 
                 if tipoToken is not None:
 
@@ -396,7 +358,49 @@ def analizarLexico(codigo):
             devueltos = ""
 
 
-analizarLexico(cod3)
+cod = '''var z:num;
+z := 0;
+while (z < 10)
+  {
+  z := z + 1;
+  print z;
+  }
+end
+# salida: 1 2 3 4 5 6 7 8 9 10'''
+
+cod2 ='''## función min(x, y)
+function @min:num (x:num, y:num)
+  {
+  when ((x < y) == true) do return x;
+  return y;
+  }
+
+## función max(x, y)
+function @max:num (x:num, y:num)
+  {
+  if ((x < y) == false) do
+    {
+    return x;
+    }
+  else
+    {
+    return y;
+    }
+  }
+
+print @min(1,2);
+print @max(1,2);
+a := 10;
+a %= 2;
+end'''
+
+cod3 = "2.5598055while3!=88¬56.a"
+
+cod4 = '''2562.texto'''
+
+analizarLexico(cod4)
+
+
 # mensaje9 = "Hola Mundo"
 # endLoc = len(mensaje9)
 # startLoc = endLoc - 2
