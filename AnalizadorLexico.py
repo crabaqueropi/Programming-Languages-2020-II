@@ -73,6 +73,8 @@ def delta(est, c):
             return (0, 0, "espacio")
         elif c == "\n":
             return (0, 0, "saltoLinea")
+        elif c == "\t":
+            return (0, 0, "tabulacion")
         else:
             return (29, 0, "Error léxico")
 
@@ -290,7 +292,9 @@ def analizarLexico(codigo):
                 fila += 1
                 columna = 1
             elif tipoToken == "espacio":
-                pass
+                pass #ya había sumado 1 antes en la columna
+            elif tipoToken == "tabulacion":
+                columna += 3 #ya había sumado 1 antes
             else:
                 if nuevoBuffer in palabrasReservadas:
                     token = Token(nuevoBuffer, nuevoBuffer, fila, (columna - len(nuevoBuffer)))
@@ -336,7 +340,9 @@ def analizarLexico(codigo):
                         fila += 1
                         columna = 1
                     elif tipoToken == "espacio":
-                        pass
+                        pass # ya había sumado 1 antes en la columna
+                    elif tipoToken == "tabulacion":
+                        columna += 3  # ya había sumado 1 antes
                     else:
                         if nuevoBuffer in palabrasReservadas:
                             token = Token(nuevoBuffer, nuevoBuffer, fila, (columna - len(nuevoBuffer)))
@@ -396,7 +402,7 @@ end'''
 
 cod3 = "2.5598055while3!=88¬56.a"
 
-cod4 = '''2562.texto'''
+cod4 = '''\t.'''
 
 analizarLexico(cod4)
 
