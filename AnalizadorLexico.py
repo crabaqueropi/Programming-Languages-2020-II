@@ -206,7 +206,7 @@ def delta(est, c):
         if c.isalpha():
             return (43, 0, None)
         else:
-            return (0, 0, "Error léxico")
+            return (0, 1, "Error léxico")
     elif est == 43:
         if c.isalnum():
             return (43, 0, None)
@@ -275,7 +275,7 @@ def analizarLexico(codigo):
         if tipoToken is not None:
 
             if tipoToken == "Error léxico":
-                print("Error léxico(línea:" + str(fila) + ",posición:" + str(columna-1) + ")")
+                print("Error léxico(línea:" + str(fila) + ",posición:" + str(columna-1-devolver) + ")")
                 break
 
             if devolver > 0:
@@ -322,7 +322,7 @@ def analizarLexico(codigo):
                 if tipoToken is not None:
 
                     if tipoToken == "Error léxico":
-                        print("Error léxico(línea:" + str(fila) + ",posición:" + str(columna-1) + ")")
+                        print("Error léxico(línea:" + str(fila) + ",posición:" + str(columna-1-devolver) + ")")
                         bucleInterno = False
                         break
 
@@ -402,7 +402,7 @@ end'''
 
 cod3 = "2.5598055while3!=88¬56.a"
 
-cod4 = '''\t.'''
+cod4 = '''@1'''
 
 analizarLexico(cod4)
 
