@@ -1,3 +1,5 @@
+import sys
+
 class Token:
     def __init__(self, tipo, lexema, fila, columna):
         self.tipo = tipo
@@ -75,6 +77,8 @@ def delta(est, c):
             return (0, 0, "saltoLinea")
         elif c == "\t":
             return (0, 0, "tabulacion")
+        elif c == "\r":
+            return (0, 0, "retorno")
         else:
             return (29, 0, "Error léxico")
 
@@ -291,7 +295,7 @@ def analizarLexico(codigo):
             if tipoToken == "saltoLinea" or tipoToken == "comentario":
                 fila += 1
                 columna = 1
-            elif tipoToken == "espacio":
+            elif tipoToken == "espacio" or tipoToken == "retorno":
                 pass #ya había sumado 1 antes en la columna
             elif tipoToken == "tabulacion":
                 columna += 3 #ya había sumado 1 antes
@@ -339,7 +343,7 @@ def analizarLexico(codigo):
                     if tipoToken == "saltoLinea" or tipoToken == "comentario":
                         fila += 1
                         columna = 1
-                    elif tipoToken == "espacio":
+                    elif tipoToken == "espacio" or tipoToken == "retorno":
                         pass # ya había sumado 1 antes en la columna
                     elif tipoToken == "tabulacion":
                         columna += 3  # ya había sumado 1 antes
@@ -404,13 +408,10 @@ cod3 = "2.5598055while3!=88¬56.a"
 
 cod4 = '''@1'''
 
-analizarLexico(cod4)
+lineasSeparadas = sys.stdin.readlines()
+lineas = ""
+for linea in lineasSeparadas:
+    lineas += linea
 
+analizarLexico(lineas)
 
-# mensaje9 = "Hola Mundo"
-# endLoc = len(mensaje9)
-# startLoc = endLoc - 2
-# mensaje9b = mensaje9[startLoc: endLoc]
-# mensaje9c = mensaje9[0: startLoc]
-# print(mensaje9b)
-# print(mensaje9c)
