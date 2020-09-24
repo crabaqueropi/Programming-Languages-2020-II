@@ -166,7 +166,7 @@ def delta(est, c):
         if c == "=":
             return (0, 0, "tk_igualdad")
         else:
-            return (29, 0, "Error léxico")
+            return (0, 1, "Error léxico")
     # elif est == 28:
     #     return -1
     # elif est == 29:
@@ -175,7 +175,7 @@ def delta(est, c):
         if c == "=":
             return (0, 0, "tk_diferente")
         else:
-            return (29, 0, "Error léxico")
+            return (0, 1, "Error léxico")
     # elif est == 31:
     #     return -1
     # elif est == 32:
@@ -406,12 +406,14 @@ end'''
 
 cod3 = "2.5598055while3!=88¬56.a"
 
-cod4 = '''@1'''
+cod4 = '''asdasd 1512=o'''
 
-lineasSeparadas = sys.stdin.readlines()
-lineas = ""
-for linea in lineasSeparadas:
-    lineas += linea
+# lineasSeparadas = sys.stdin.readlines()
+# lineas = ""
+# for linea in lineasSeparadas:
+#     lineas += linea
+#
+# #analizarLexico(lineas)
 
-analizarLexico(lineas)
+analizarLexico(cod4)
 
