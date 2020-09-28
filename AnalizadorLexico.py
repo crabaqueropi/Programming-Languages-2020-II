@@ -1,5 +1,6 @@
-import sys
+#Cristian Adolfo Baquero Pico
 
+import sys
 
 class Token:
     def __init__(self, tipo, lexema, fila, columna):
@@ -25,7 +26,7 @@ class Token:
 palabrasReservadas = ("and", "bool", "break", "do", "else", "end", "false",
                       "for", "function", "if", "input", "loop", "next", "num",
                       "or", "print", "repeat", "return", "true", "unless",
-                      "until", "var", "when", "while")
+                      "until", "var", "when", "while", "not")
 
 
 def delta(est, c):
@@ -64,7 +65,7 @@ def delta(est, c):
             return (0, 0, "tk_coma")
         elif c == ";":
             return (0, 0, "tk_puntoycoma")
-        elif c.isalpha():
+        elif c.isalpha() or c == "_":
             return (11, 0, None)
         elif c == "@":
             return (13, 0, None)
@@ -138,24 +139,24 @@ def delta(est, c):
         else:
             return (0, 1, "Error léxico")
     elif est == 11:
-        if c.isalpha():
+        if c.isalpha() or c == "_":
             return (11, 0, None)
         elif c.isdigit():
             return (12, 0, None)
         else:
             return (0, 1, "REVISAR")
     elif est == 12:
-        if c.isalnum():
+        if c.isalnum() or c == "_":
             return (12, 0, None)
         else:
             return (0, 1, "id")
     elif est == 13:
-        if c.isalpha():
+        if c.isalpha() or c == "_":
             return (14, 0, None)
         else:
             return (0, 1, "Error léxico")
     elif est == 14:
-        if c.isalnum():
+        if c.isalnum() or c == "_":
             return (14, 0, None)
         else:
             return (0, 1, "fid")
@@ -241,7 +242,7 @@ def analizarLexico(codigo):
         if tipoToken is not None:
 
             if tipoToken == "Error léxico":
-                print("Error léxico(línea:" + str(fila) + ",posición:" + str(columna - 1 - devolver) + ")")
+                print(">>> Error léxico(línea:" + str(fila) + ",posición:" + str(columna - 1 - devolver) + ")")
                 break
 
             devueltos, fila, columna, buffer = definirToken(devolver, tipoToken, devueltos, fila, columna, buffer)
@@ -254,7 +255,7 @@ def analizarLexico(codigo):
                 if tipoToken is not None:
 
                     if tipoToken == "Error léxico":
-                        print("Error léxico(línea:" + str(fila) + ",posición:" + str(columna - 1 - devolver) + ")")
+                        print(">>> Error léxico(línea:" + str(fila) + ",posición:" + str(columna - 1 - devolver) + ")")
                         bucleInterno = False
                         break
 
@@ -301,9 +302,9 @@ end'''
 
 cod3 = "2.5598055while3!=88¬56.a"
 
-cod4 = "!1"
+cod4 = "_print"
 
-analizarLexico(cod2)
+analizarLexico(cod4)
 
 # lineasSeparadas = sys.stdin.readlines()
 # lineas = ""
