@@ -2,12 +2,14 @@
 
 import sys
 
-banderaSintaxis = False
+flagSintaxis = False
+finArchivo = False
 
-token = ""
-i = 0
-j = 0
 recursive_calls = []
+tokens = []
+indexToken = 0
+tokenActual = None
+
 
 class Token:
     def __init__(self, tipo, lexema, fila, columna):
@@ -65,10 +67,10 @@ diccionarioTokens = {
 }
 
 noTerminales = ["prog", "var_decl", "var_decl_mas", "tipoDato", "fn_decl_list", "var_locales",
-                 "stmt_block", "stm_mas", "stmt", "stmt_do_next", "stmt_while", "stmt_until",
-                 "stmt_id_next", "lexpr", "nexpr_mas", "nexpr_mas_and", "nexpr_mas_or", "nexpr",
-                 "rexpr", "rexpr_mas", "simple_expr", "simple_expr_mas", "term", "term_mas", "factor",
-                 "factor_mas", "incr_decr", "argu", "argu_mas", "main_prog"]
+                "stmt_block", "stm_mas", "stmt", "stmt_do_next", "stmt_while", "stmt_until",
+                "stmt_id_next", "lexpr", "nexpr_mas", "nexpr_mas_and", "nexpr_mas_or", "nexpr",
+                "rexpr", "rexpr_mas", "simple_expr", "simple_expr_mas", "term", "term_mas", "factor",
+                "factor_mas", "incr_decr", "argu", "argu_mas", "main_prog"]
 
 gramatica = {
     "prog": [["fn_decl_list", "main_prog"]],
@@ -128,12 +130,12 @@ gramatica = {
     "nexpr": [["not", "tk_par_izq", "lexpr", "tk_par_der"],
               ["rexpr"]],
     "rexpr": [["simple_expr", "rexpr_mas"]],
-    "rexpr_mas": [["tk_menor", "simple_expr "],
-                  ["tk_igualdad", "simple_expr "],
-                  ["tk_menor_igual", "simple_expr "],
-                  ["tk_mayor", "simple_expr "],
-                  ["tk_mayor_igual", "simple_expr "],
-                  ["tk_diferente", "simple_expr "],
+    "rexpr_mas": [["tk_menor", "simple_expr"],
+                  ["tk_igualdad", "simple_expr"],
+                  ["tk_menor_igual", "simple_expr"],
+                  ["tk_mayor", "simple_expr"],
+                  ["tk_mayor_igual", "simple_expr"],
+                  ["tk_diferente", "simple_expr"],
                   [""]],
     "simple_expr": [["term", "simple_expr_mas"]],
     "simple_expr_mas": [["tk_mas", "term", "simple_expr_mas"],
@@ -171,6 +173,7 @@ for k in gramatica.keys():
 def log(s, debug=0):
     if debug:
         print(s)
+
 
 def PRIMEROS(alpha, debug=0):
     alpha = [alpha] if type(alpha) is str else alpha
@@ -222,6 +225,7 @@ def PRIMEROS(alpha, debug=0):
 
     return primeros
 
+
 def SIGUIENTES(no_terminal):
     global recursive_calls
     set_siguientes = set()
@@ -255,6 +259,7 @@ def SIGUIENTES(no_terminal):
 
     return set_siguientes
 
+
 def PRED(noTerminal):
     for regla in gramatica[noTerminal]:
         set_prediccion = set()
@@ -263,7 +268,7 @@ def PRED(noTerminal):
         if "" in primeros_alpha:
             set_prediccion = set_prediccion.union(primeros_alpha)
             set_prediccion.remove("")
-            recursive_calls = [] #para que pueda iniciar bien SIGUIENTES
+            recursive_calls = []  # para que pueda iniciar bien SIGUIENTES
             siguientesDeNoTerm = SIGUIENTES(noTerminal)
             set_prediccion = set_prediccion.union(siguientesDeNoTerm)
 
@@ -275,6 +280,7 @@ def PRED(noTerminal):
             lst_tmp.append(i)
 
         reglasPediccion[noTerminal].append(lst_tmp)
+
 
 def delta(est, c):
     # est = estado; c = caracter
@@ -432,6 +438,7 @@ def delta(est, c):
     else:
         print("errorEnEstados")
 
+
 def definirToken(devolver, tipoToken, devueltos, fila, columna, buffer):
     if devolver > 0:
         endLoc = len(buffer)
@@ -442,6 +449,7 @@ def definirToken(devolver, tipoToken, devueltos, fila, columna, buffer):
     else:
         nuevoBuffer = buffer
 
+    token = None
     buffer = ""
     if tipoToken == "saltoLinea" or tipoToken == "comentario":
         fila += 1
@@ -453,19 +461,20 @@ def definirToken(devolver, tipoToken, devueltos, fila, columna, buffer):
     else:
         if nuevoBuffer in palabrasReservadas:
             token = Token(nuevoBuffer, nuevoBuffer, fila, (columna - len(nuevoBuffer)))
-            print(token)
+            # print(token)
         else:
             if tipoToken == "REVISAR":
                 token = Token("id", nuevoBuffer, fila, (columna - len(nuevoBuffer)))
-                print(token)
+                # print(token)
             elif tipoToken == "tk_num" or tipoToken == "fid":
                 token = Token(tipoToken, nuevoBuffer, fila, (columna - len(nuevoBuffer)))
-                print(token)
+                # print(token)
             else:
                 token = Token(tipoToken, nuevoBuffer, fila, (columna - len(nuevoBuffer)))
-                print(token)
+                # print(token)
 
-    return devueltos, fila, columna, buffer
+    return devueltos, fila, columna, buffer, token
+
 
 def analizarLexico(codigo):
     codigo += " "  # para que detecte el último lexema del código
@@ -491,7 +500,10 @@ def analizarLexico(codigo):
                 print(">>> Error léxico(línea:" + str(fila) + ",posición:" + str(columna - 1 - devolver) + ")")
                 break
 
-            devueltos, fila, columna, buffer = definirToken(devolver, tipoToken, devueltos, fila, columna, buffer)
+            devueltos, fila, columna, buffer, token = definirToken(devolver, tipoToken, devueltos, fila, columna,
+                                                                   buffer)
+            if token != None:
+                tokens.append(token)
 
             for caracterDev in devueltos:
                 buffer += caracterDev
@@ -505,47 +517,115 @@ def analizarLexico(codigo):
                         bucleInterno = False
                         break
 
-                    devueltos, fila, columna, buffer = definirToken(devolver, tipoToken, devueltos, fila, columna,
-                                                                    buffer)
+                    devueltos, fila, columna, buffer, token = definirToken(devolver, tipoToken, devueltos, fila,
+                                                                           columna, buffer)
+                    if token != None:
+                        tokens.append(token)
 
             devueltos = ""
 
+
+def getNextToken():
+    global indexToken, tokenActual, finArchivo
+    if indexToken == len(tokens):
+        finArchivo = True
+    else:
+        tokenActual = tokens[indexToken]
+    indexToken += 1
+
+
+def errorSintaxis(lista_tokens_Esperados):
+    global tokenActual, flagSintaxis
+    flagSintaxis = True
+    # if i == -2 and j == -2:
+    #     return
+    str_tmp = ""
+    for pred in lista_tokens_Esperados:
+        for token_esperado in pred:
+            try:
+                str_tmp += "'" + diccionarioTokens[token_esperado] + "', "
+            except KeyError:
+                str_tmp += "'" + token_esperado + "', "
+    token_found = str(tokenActual.tipo)
+    try:
+        token_found = diccionarioTokens[str(tokenActual.tipo)]
+    except KeyError:
+        pass
+    print(
+        "<" + str(tokenActual.fila) + "," + str(
+            tokenActual.columna) + ">" + " Error sintactico: se encontró: '" + token_found + "' y se esperaba " + str(
+            str_tmp[:-2]) + ".")
+
+
+def emparejar(token, token_esperado):
+    # Emparejar No Terminales
+    if token == token_esperado:
+        getNextToken()
+    else:
+        errorSintaxis([[token_esperado]])
+
+
+def nonTerminal(N):
+    global tokenActual
+    for idx, pd in enumerate(reglasPediccion[N]):
+        if flagSintaxis:
+            return
+        if tokenActual.tipo in pd:
+            for symbol in gramatica[N][idx]:
+                if flagSintaxis:
+                    return
+                if symbol in noTerminales:
+                    nonTerminal(symbol)
+                    if flagSintaxis:
+                        return
+                elif symbol == "":
+                    if flagSintaxis:
+                        return
+                else:
+                    emparejar(tokenActual.tipo, symbol)
+                    # if i == -1 and j == -1:  # Fin de archivo
+                    #     token = ("$", i, j)
+                    # if i == -2 and j == -2:  # Error lexico
+                    #     flagSintaxis == True
+                    if flagSintaxis:
+                        return
+
+            return
+    tokensEsperados = []
+    for k in reglasPediccion[N]:
+        tokensEsperados.append(k)
+    errorSintaxis(tokensEsperados)
+    return
+
+
 def main():
-    global token, i, j, recursive_calls
+    global tokenActual, recursive_calls, finArchivo
 
     for nt in noTerminales:
         recursive_calls = []
         PRED(nt)
 
-    lineasSeparadas = sys.stdin.readlines()
-    lineas = ""
-    for linea in lineasSeparadas:
-        lineas += linea
+    # lineasSeparadas = sys.stdin.readlines()
+    # lineas = ""
+    # for linea in lineasSeparadas:
+    #     lineas += linea
 
-    #analizarLexico(lineas)
 
-    #lexer = Lexer("test.py") -- ejemplo
-    # with open("output.txt", "w") as file:
-    #     token, i, j = lexer.getNextToken(i, j)
-    #     nonTerminal(initial_symbol_grammar, lexer)
-    #     if not banderaSintaxis:
-    #         if token[0] == '$':
-    #             print("El analisis sintactico ha finalizado exitosamente.")
-    #         else:
-    #             errorSintaxis(["No se esperaba este token"])
-    #             # print(token)
+    lineas = cod4
 
-cod1 = '''var z:num;
-z := 0;
-while (z < 10)
-  {
-  z := z + 1;
-  print z;
-  }
-end
-# salida: 1 2 3 4 5 6 7 8 9 10'''
+    analizarLexico(lineas)  # Llenar lista de tokens
 
-cod2 = '''## función min(x, y)
+    getNextToken()
+    nonTerminal("prog")
+    if not flagSintaxis:
+        if finArchivo:
+            print("El analisis sintactico ha finalizado exitosamente.")
+        else:
+            errorSintaxis(["No se esperaba este token"])
+            # print(token)
+
+
+cod1 = '''## función min(x, y)
 function @min:num (x:num, y:num)
   {
   when ((x < y) == true) do return x;
@@ -567,22 +647,51 @@ function @max:num (x:num, y:num)
 
 print @min(1,2);
 print @max(1,2);
-a := 10;
-a %= 2;
-end'''
+end
+'''
 
-cod3 = "2.5598055while3!=88¬56.a"
+cod2 = '''## función min(x, y)
+function @min:num (x:num, y:num)
+var menor:num, flag:bool;     # Las variables locales van antes del bloque
+  {
+  when ((x < y) == true) do return x;
+  return y;
+  }
 
-cod4 = "_print"
+## función max(x, y) El bloque debe tener, como mínimo, una sentencia
+function @max:num (x:num, y:num)
+  {
+    print x+y;
+  }
 
-# analizarLexico(cod4)
+## función asignar(x, y) puede haber funciones de una única instrucción
+function @asignar:num (x:num, y:num)
+  x := y;
 
-# lineasSeparadas = sys.stdin.readlines()
-# lineas = ""
-# for linea in lineasSeparadas:
-#     lineas += linea
-#
-# analizarLexico(lineas)
+end
+'''
 
+cod3 = '''## función retornay(x, y)
+function @retornay: (x:num, y:num)
+  {
+  return y;
+  }
+end
+'''
 
-print(SIGUIENTES("lexpr"))
+cod4 = '''variable := 1;
+variable;
+end
+'''
+
+main()
+
+# print("****")
+# for i in tokens:
+#     print(i.tipo)
+
+# print(SIGUIENTES("lexpr"))
+
+# for keys, values in reglasPediccion.items():
+    #     print(keys)
+    #     print(values)
