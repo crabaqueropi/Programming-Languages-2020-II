@@ -2,6 +2,12 @@
 
 import sys
 
+banderaSintaxis = False
+
+token = ""
+i = 0
+j = 0
+recursive_calls = []
 
 class Token:
     def __init__(self, tipo, lexema, fila, columna):
@@ -67,7 +73,7 @@ noTerminales = ["prog", "var_decl", "var_decl_mas", "tipoDato", "fn_decl_list", 
 gramatica = {
     "prog": [["fn_decl_list", "main_prog"]],
     "var_decl": [["id", "tk_dospuntos", "tipoDato", "var_decl_mas"]],
-    "var_decl_mas": [["tk_coma", "id", "tk_dospuntos", "tipoDato", " var_decl_mas"],
+    "var_decl_mas": [["tk_coma", "id", "tk_dospuntos", "tipoDato", "var_decl_mas"],
                      [""]],
     "tipoDato": [["bool"],
                  ["num"]],
@@ -113,7 +119,7 @@ gramatica = {
                      ["tk_decremento", "tk_puntoycoma"]],
     "lexpr": [["nexpr", "nexpr_mas"]],
     "nexpr_mas": [["and", "nexpr", "nexpr_mas_and"],
-                  ["or", " nexpr", "nexpr_mas_or"],
+                  ["or", "nexpr", "nexpr_mas_or"],
                   [""]],
     "nexpr_mas_and": [["and", "nexpr", "nexpr_mas_and"],
                       [""]],
@@ -166,7 +172,6 @@ def log(s, debug=0):
     if debug:
         print(s)
 
-
 def PRIMEROS(alpha, debug=0):
     alpha = [alpha] if type(alpha) is str else alpha
 
@@ -217,6 +222,59 @@ def PRIMEROS(alpha, debug=0):
 
     return primeros
 
+def SIGUIENTES(no_terminal):
+    global recursive_calls
+    set_siguientes = set()
+    if no_terminal == "prog":
+        set_siguientes = set_siguientes.union(set("$"))
+
+    for noTerm, reglas in gramatica.items():
+        for regla in reglas:
+            try:
+                index = regla.index(no_terminal)
+                if index == len(regla) - 1:
+                    beta = ""
+                else:
+                    beta = regla[index + 1:]
+
+                if type(beta) == str:
+                    beta = [beta]
+
+                primeros_beta = PRIMEROS(beta)
+                set_siguientes = set_siguientes.union(primeros_beta)
+                set_siguientes.remove("")
+
+                if "" in primeros_beta or beta == "":
+                    if noTerm not in recursive_calls:
+                        recursive_calls.append(no_terminal)
+                        set_siguientes = set_siguientes.union(SIGUIENTES(noTerm))
+            except ValueError:
+                pass
+            except KeyError:
+                pass
+
+    return set_siguientes
+
+def PRED(noTerminal):
+    for regla in gramatica[noTerminal]:
+        set_prediccion = set()
+        primeros_alpha = PRIMEROS(regla)
+
+        if "" in primeros_alpha:
+            set_prediccion = set_prediccion.union(primeros_alpha)
+            set_prediccion.remove("")
+            recursive_calls = [] #para que pueda iniciar bien SIGUIENTES
+            siguientesDeNoTerm = SIGUIENTES(noTerminal)
+            set_prediccion = set_prediccion.union(siguientesDeNoTerm)
+
+        else:
+            set_prediccion = set_prediccion.union(primeros_alpha)
+
+        lst_tmp = []
+        for i in set_prediccion:
+            lst_tmp.append(i)
+
+        reglasPediccion[noTerminal].append(lst_tmp)
 
 def delta(est, c):
     # est = estado; c = caracter
@@ -374,7 +432,6 @@ def delta(est, c):
     else:
         print("errorEnEstados")
 
-
 def definirToken(devolver, tipoToken, devueltos, fila, columna, buffer):
     if devolver > 0:
         endLoc = len(buffer)
@@ -409,7 +466,6 @@ def definirToken(devolver, tipoToken, devueltos, fila, columna, buffer):
                 print(token)
 
     return devueltos, fila, columna, buffer
-
 
 def analizarLexico(codigo):
     codigo += " "  # para que detecte el último lexema del código
@@ -454,6 +510,30 @@ def analizarLexico(codigo):
 
             devueltos = ""
 
+def main():
+    global token, i, j, recursive_calls
+
+    for nt in noTerminales:
+        recursive_calls = []
+        PRED(nt)
+
+    lineasSeparadas = sys.stdin.readlines()
+    lineas = ""
+    for linea in lineasSeparadas:
+        lineas += linea
+
+    #analizarLexico(lineas)
+
+    #lexer = Lexer("test.py") -- ejemplo
+    # with open("output.txt", "w") as file:
+    #     token, i, j = lexer.getNextToken(i, j)
+    #     nonTerminal(initial_symbol_grammar, lexer)
+    #     if not banderaSintaxis:
+    #         if token[0] == '$':
+    #             print("El analisis sintactico ha finalizado exitosamente.")
+    #         else:
+    #             errorSintaxis(["No se esperaba este token"])
+    #             # print(token)
 
 cod1 = '''var z:num;
 z := 0;
@@ -505,4 +585,4 @@ cod4 = "_print"
 # analizarLexico(lineas)
 
 
-print(PRIMEROS(gramatica["prog"][0]))
+print(SIGUIENTES("lexpr"))
