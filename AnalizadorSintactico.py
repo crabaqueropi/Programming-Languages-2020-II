@@ -1,6 +1,7 @@
-#Cristian Adolfo Baquero Pico
+# Cristian Adolfo Baquero Pico
 
 import sys
+
 
 class Token:
     def __init__(self, tipo, lexema, fila, columna):
@@ -27,6 +28,194 @@ palabrasReservadas = ("and", "bool", "break", "do", "else", "end", "false",
                       "for", "function", "if", "input", "loop", "next", "num",
                       "or", "print", "repeat", "return", "true", "unless",
                       "until", "var", "when", "while", "not")
+
+diccionarioTokens = {
+    "tk_mayor": ">",
+    "tk_mayor_igual": ">=",
+    "tk_menor": "<",
+    "tk_menor_igual": "<=",
+    "tk_sum_asig": "+=",
+    "tk_mas": "+",
+    "tk_incremento": "++",
+    "tk_res_asig": "-=",
+    "tk_menos": "-",
+    "tk_decremento": "--",
+    "tk_mul_asig": "*=",
+    "tk_mul": "*",
+    "tk_div_asig": "/=",
+    "tk_div": "/",
+    "tk_mod_asig": "%=",
+    "tk_mod": "%",
+    "tk_dospuntos": ":",
+    "tk_asignacion": ":=",
+    "tk_igualdad": "==",
+    "tk_diferente": "!=",
+    "tk_llave_izq": "{",
+    "tk_llave_der": "}",
+    "tk_par_izq": "(",
+    "tk_par_der": ")",
+    "tk_coma": ",",
+    "tk_puntoycoma": ";"
+}
+
+noTerminales = ["prog", "var_decl", "var_decl_mas", "tipoDato", "fn_decl_list", "var_locales",
+                 "stmt_block", "stm_mas", "stmt", "stmt_do_next", "stmt_while", "stmt_until",
+                 "stmt_id_next", "lexpr", "nexpr_mas", "nexpr_mas_and", "nexpr_mas_or", "nexpr",
+                 "rexpr", "rexpr_mas", "simple_expr", "simple_expr_mas", "term", "term_mas", "factor",
+                 "factor_mas", "incr_decr", "argu", "argu_mas", "main_prog"]
+
+gramatica = {
+    "prog": [["fn_decl_list", "main_prog"]],
+    "var_decl": [["id", "tk_dospuntos", "tipoDato", "var_decl_mas"]],
+    "var_decl_mas": [["tk_coma", "id", "tk_dospuntos", "tipoDato", " var_decl_mas"],
+                     [""]],
+    "tipoDato": [["bool"],
+                 ["num"]],
+    "fn_decl_list": [
+        ["function", "fid", "tk_dospuntos", "tipoDato", "tk_par_izq", "var_decl", "tk_par_der", "var_locales",
+         "stmt_block", "fn_decl_list"],
+        [""]],
+    "var_locales": [["var", "var_decl", "tk_puntoycoma"],
+                    [""]],
+    "stmt_block": [["tk_llave_izq", "stm_mas", "tk_llave_der"],
+                   ["stmt"]],
+    "stm_mas": [["stmt", "stm_mas"],
+                [""]],
+    "stmt": [["print", "lexpr", "tk_puntoycoma"],
+             ["input", "id", "tk_puntoycoma"],
+             ["when", "tk_par_izq", "lexpr", "tk_par_der", "do", "stmt_block"],
+             ["if", "tk_par_izq", "lexpr", "tk_par_der", "do", "stmt_block", "else", "stmt_block"],
+             ["unless", "tk_par_izq", "lexpr", "tk_par_der", "do", "stmt_block"],
+             ["stmt_while", "do", "stmt_block"],
+             ["return", "lexpr", "tk_puntoycoma"],
+             ["stmt_until", "do", "stmt_block"],
+             ["loop", "stmt_block"],
+             ["do", "stmt_block", "stmt_do_next"],
+             ["repeat", "tk_num", "tk_dospuntos", "stmt_block"],
+             ["for", "tk_par_izq", "lexpr", "tk_puntoycoma", "lexpr", "tk_puntoycoma", "lexpr", "tk_par_der", "do",
+              "stmt_block"],
+             ["next", "tk_puntoycoma"],
+             ["break", "tk_puntoycoma"],
+             ["id", "stmt_id_next"],
+             ["tk_decremento", "id", "tk_puntoycoma"],
+             ["tk_incremento", "id", "tk_puntoycoma"]],
+    "stmt_do_next": [["stmt_while"],
+                     ["stmt_until"]],
+    "stmt_while": [["while", "tk_par_izq", "lexpr", "tk_par_der"]],
+    "stmt_until": [["until", "tk_par_izq", "lexpr", "tk_par_der"]],
+    "stmt_id_next": [["tk_asignacion", "lexpr", "tk_puntoycoma"],
+                     ["tk_sum_asig", "lexpr", "tk_puntoycoma"],
+                     ["tk_res_asig", "lexpr", "tk_puntoycoma"],
+                     ["tk_mul_asig", "lexpr", "tk_puntoycoma"],
+                     ["tk_div_asig", "lexpr", "tk_puntoycoma"],
+                     ["tk_mod_asig", "lexpr", "tk_puntoycoma"],
+                     ["tk_incremento", "tk_puntoycoma"],
+                     ["tk_decremento", "tk_puntoycoma"]],
+    "lexpr": [["nexpr", "nexpr_mas"]],
+    "nexpr_mas": [["and", "nexpr", "nexpr_mas_and"],
+                  ["or", " nexpr", "nexpr_mas_or"],
+                  [""]],
+    "nexpr_mas_and": [["and", "nexpr", "nexpr_mas_and"],
+                      [""]],
+    "nexpr_mas_or": [["or", "nexpr", "nexpr_mas_or"],
+                     [""]],
+    "nexpr": [["not", "tk_par_izq", "lexpr", "tk_par_der"],
+              ["rexpr"]],
+    "rexpr": [["simple_expr", "rexpr_mas"]],
+    "rexpr_mas": [["tk_menor", "simple_expr "],
+                  ["tk_igualdad", "simple_expr "],
+                  ["tk_menor_igual", "simple_expr "],
+                  ["tk_mayor", "simple_expr "],
+                  ["tk_mayor_igual", "simple_expr "],
+                  ["tk_diferente", "simple_expr "],
+                  [""]],
+    "simple_expr": [["term", "simple_expr_mas"]],
+    "simple_expr_mas": [["tk_mas", "term", "simple_expr_mas"],
+                        ["tk_menos", "term", "simple_expr_mas"],
+                        [""]],
+    "term": [["factor", "term_mas"]],
+    "term_mas": [["tk_mul", "factor", "term_mas"],
+                 ["tk_div", "factor", "term_mas"],
+                 ["tk_mod", "factor", "term_mas"],
+                 [""]],
+    "factor": [["tk_num"],
+               ["true"],
+               ["false"],
+               ["id", "factor_mas"],
+               ["incr_decr", "id"],
+               ["tk_par_izq", "lexpr", "tk_par_der"],
+               ["fid", "tk_par_izq", "argu", "tk_par_der"]],
+    "factor_mas": [["incr_decr"],
+                   [""]],
+    "incr_decr": [["tk_incremento"],
+                  ["tk_decremento"]],
+    "argu": [["lexpr", "argu_mas"],
+             [""]],
+    "argu_mas": [["tk_coma", "lexpr", "argu_mas"],
+                 [""]],
+    "main_prog": [["var_locales", "stm_mas", "end"]]
+}
+
+reglasPediccion = {}
+
+for k in gramatica.keys():
+    reglasPediccion[k] = []
+
+
+def log(s, debug=0):
+    if debug:
+        print(s)
+
+
+def PRIMEROS(alpha, debug=0):
+    alpha = [alpha] if type(alpha) is str else alpha
+
+    primeros = set()
+    if alpha[0] == "":  # 1. Si alpha == epsilon
+        primeros = primeros.union([""])
+        return primeros
+
+    if alpha[0] not in noTerminales:  # 2a. a_1 es un terminal
+
+        primeros = primeros.union([alpha[0]])
+        return primeros
+
+    else:
+        if alpha[0] != alpha[0]:
+            primeros = primeros.union(PRIMEROS(alpha[0], debug))
+
+            if "" in primeros:
+                if len(alpha) == 1:
+                    pass
+                else:
+                    try:
+                        primeros.remove("")
+                    except KeyError:
+                        pass
+
+                    primeros = primeros.union(PRIMEROS(alpha[1:], debug))
+
+            return primeros
+
+        else:
+            for regla in gramatica[alpha[0]]:
+                primeros = primeros.union(PRIMEROS(regla, debug))
+                if "" in primeros:
+                    if len(alpha) == 1:
+                        pass
+                    else:
+                        try:
+                            primeros.remove("")
+                        except KeyError:
+                            pass
+
+                        primeros = primeros.union(PRIMEROS(alpha[1:], debug))
+
+            log("PRIMEROS( " + alpha[0] + " ) = { " + str(
+                primeros) + " }", debug)
+            pass
+
+    return primeros
 
 
 def delta(est, c):
@@ -221,6 +410,7 @@ def definirToken(devolver, tipoToken, devueltos, fila, columna, buffer):
 
     return devueltos, fila, columna, buffer
 
+
 def analizarLexico(codigo):
     codigo += " "  # para que detecte el último lexema del código
     fila = 1
@@ -259,7 +449,8 @@ def analizarLexico(codigo):
                         bucleInterno = False
                         break
 
-                    devueltos, fila, columna, buffer = definirToken(devolver, tipoToken, devueltos, fila, columna, buffer)
+                    devueltos, fila, columna, buffer = definirToken(devolver, tipoToken, devueltos, fila, columna,
+                                                                    buffer)
 
             devueltos = ""
 
@@ -304,7 +495,7 @@ cod3 = "2.5598055while3!=88¬56.a"
 
 cod4 = "_print"
 
-analizarLexico(cod4)
+# analizarLexico(cod4)
 
 # lineasSeparadas = sys.stdin.readlines()
 # lineas = ""
@@ -312,3 +503,6 @@ analizarLexico(cod4)
 #     lineas += linea
 #
 # analizarLexico(lineas)
+
+
+print(PRIMEROS(gramatica["prog"][0]))
