@@ -4,6 +4,7 @@ import sys
 
 flagSintaxis = False
 finArchivo = False
+filaFinal = -1
 
 recursive_calls = []
 tokens = []
@@ -37,6 +38,14 @@ palabrasReservadas = ("and", "bool", "break", "do", "else", "end", "false",
                       "or", "print", "repeat", "return", "true", "unless",
                       "until", "var", "when", "while", "not")
 
+ordenLexicografico = ("!=", "%", "%=", "(", ")", "*", "*=", "+", "++", "+=", ",", "-", "--",
+                      "-=", "/", "/=", ":", ":=", ";", "<", "<=", "==", ">", ">=",
+                      "and", "bool", "break", "do", "else", "end", "false",
+                      "for", "function", "identificador de funcion", "identificador",
+                      "if", "input", "loop", "next", "not", "num", "numero",
+                      "or", "print", "repeat", "return", "true", "unless",
+                      "until", "var", "when", "while", "{", "}")
+
 diccionarioTokens = {
     "tk_mayor": ">",
     "tk_mayor_igual": ">=",
@@ -63,7 +72,10 @@ diccionarioTokens = {
     "tk_par_izq": "(",
     "tk_par_der": ")",
     "tk_coma": ",",
-    "tk_puntoycoma": ";"
+    "tk_puntoycoma": ";",
+    "id": "identificador",
+    "fid": "identificador de funcion",
+    "tk_num": "numero"
 }
 
 noTerminales = ["prog", "var_decl", "var_decl_mas", "tipoDato", "fn_decl_list", "var_locales",
@@ -261,6 +273,7 @@ def SIGUIENTES(no_terminal):
 
 
 def PRED(noTerminal):
+    global recursive_calls
     for regla in gramatica[noTerminal]:
         set_prediccion = set()
         primeros_alpha = PRIMEROS(regla)
@@ -477,6 +490,7 @@ def definirToken(devolver, tipoToken, devueltos, fila, columna, buffer):
 
 
 def analizarLexico(codigo):
+    global filaFinal
     codigo += " "  # para que detecte el último lexema del código
     fila = 1
     columna = 1
@@ -523,6 +537,7 @@ def analizarLexico(codigo):
                         tokens.append(token)
 
             devueltos = ""
+    filaFinal = fila
 
 
 def getNextToken():
@@ -534,27 +549,45 @@ def getNextToken():
     indexToken += 1
 
 
+errorFin = False
+
+
 def errorSintaxis(lista_tokens_Esperados):
-    global tokenActual, flagSintaxis
-    flagSintaxis = True
-    # if i == -2 and j == -2:
-    #     return
-    str_tmp = ""
-    for pred in lista_tokens_Esperados:
-        for token_esperado in pred:
-            try:
-                str_tmp += "'" + diccionarioTokens[token_esperado] + "', "
-            except KeyError:
-                str_tmp += "'" + token_esperado + "', "
-    token_found = str(tokenActual.tipo)
-    try:
-        token_found = diccionarioTokens[str(tokenActual.tipo)]
-    except KeyError:
-        pass
-    print(
-        "<" + str(tokenActual.fila) + "," + str(
-            tokenActual.columna) + ">" + " Error sintactico: se encontró: '" + token_found + "' y se esperaba " + str(
-            str_tmp[:-2]) + ".")
+    global tokenActual, flagSintaxis, errorFin, filaFinal
+    if tokenActual.tipo == "fin_archivo":
+        print(
+            "<" + str(filaFinal) + ":1>" + " Error sintactico: se encontro final de archivo; se esperaba 'end'.")
+        errorFin = True
+
+    else:
+        flagSintaxis = True
+        # if i == -2 and j == -2:
+        #     return
+        esperadosAux = []
+        for pred in lista_tokens_Esperados:
+            for token_esperado in pred:
+                try:
+                    # str_tmp += "'" + diccionarioTokens[token_esperado] + "', "
+                    esperadosAux.append(diccionarioTokens[token_esperado])
+                except KeyError:
+                    # str_tmp += "'" + token_esperado + "', "
+                    esperadosAux.append(token_esperado)
+
+        token_found = str(tokenActual.tipo)
+        try:
+            token_found = diccionarioTokens[str(tokenActual.tipo)]
+        except KeyError:
+            pass
+
+        str_tmp = ""
+        for tokenIndex in ordenLexicografico:
+            if tokenIndex in esperadosAux:
+                str_tmp += "'" + tokenIndex + "', "
+
+        print(
+            "<" + str(tokenActual.fila) + ":" + str(
+                tokenActual.columna) + ">" + " Error sintactico: se encontro: '" + token_found + "'; se esperaba: " + str(
+                str_tmp[:-2]) + ".")
 
 
 def emparejar(token, token_esperado):
@@ -566,7 +599,8 @@ def emparejar(token, token_esperado):
 
 
 def nonTerminal(N):
-    global tokenActual
+    global tokenActual, finArchivo
+
     for idx, pd in enumerate(reglasPediccion[N]):
         if flagSintaxis:
             return
@@ -582,9 +616,12 @@ def nonTerminal(N):
                     if flagSintaxis:
                         return
                 else:
-                    emparejar(tokenActual.tipo, symbol)
-                    # if i == -1 and j == -1:  # Fin de archivo
-                    #     token = ("$", i, j)
+                    if not errorFin:
+                        emparejar(tokenActual.tipo, symbol)
+                    if finArchivo:  # Fin de archivo
+                        tokenActual = Token("fin_archivo", "$", tokenActual.fila,
+                                            (tokenActual.columna + len(tokenActual.lexema)))
+                        break
                     # if i == -2 and j == -2:  # Error lexico
                     #     flagSintaxis == True
                     if flagSintaxis:
@@ -592,14 +629,16 @@ def nonTerminal(N):
 
             return
     tokensEsperados = []
-    for k in reglasPediccion[N]:
-        tokensEsperados.append(k)
-    errorSintaxis(tokensEsperados)
+    if "" not in PRIMEROS(N):
+        for k in reglasPediccion[N]:
+            tokensEsperados.append(k)
+        if not errorFin:
+            errorSintaxis(tokensEsperados)
     return
 
 
 def main():
-    global tokenActual, recursive_calls, finArchivo
+    global tokenActual, recursive_calls, finArchivo, errorFin
 
     for nt in noTerminales:
         recursive_calls = []
@@ -610,8 +649,7 @@ def main():
     # for linea in lineasSeparadas:
     #     lineas += linea
 
-
-    lineas = cod4
+    lineas = cod7
 
     analizarLexico(lineas)  # Llenar lista de tokens
 
@@ -619,7 +657,8 @@ def main():
     nonTerminal("prog")
     if not flagSintaxis:
         if finArchivo:
-            print("El analisis sintactico ha finalizado exitosamente.")
+            if not errorFin:
+                print("El analisis sintactico ha finalizado correctamente.")
         else:
             errorSintaxis(["No se esperaba este token"])
             # print(token)
@@ -684,7 +723,25 @@ variable;
 end
 '''
 
+cod5 = '''variable := ;'''
+
+cod6 = '''var flag:bool;
+
+flag:=true;
+flag := not (flag and (not(false) or true)) + ;
+end'''
+
+cod7 = '''loop{
+    repeat 10:
+    {    print(100);
+
+}
+'''
+
 main()
+# print(PRIMEROS("nexpr_mas"))
+# print(SIGUIENTES("lexpr"))
+# print(reglasPediccion["lexpr"])
 
 # print("****")
 # for i in tokens:
@@ -693,5 +750,5 @@ main()
 # print(SIGUIENTES("lexpr"))
 
 # for keys, values in reglasPediccion.items():
-    #     print(keys)
-    #     print(values)
+#     print(keys)
+#     print(values)
