@@ -597,9 +597,11 @@ def emparejar(token, token_esperado):
     else:
         errorSintaxis([[token_esperado]])
 
+conjunto = set()
+seImprimioErrorFinArchivo = False
 
 def nonTerminal(N):
-    global tokenActual, finArchivo
+    global tokenActual, finArchivo, flagSintaxis, conjunto, errorFin, seImprimioErrorFinArchivo
 
     for idx, pd in enumerate(reglasPediccion[N]):
         if flagSintaxis:
@@ -617,17 +619,37 @@ def nonTerminal(N):
                         return
                 else:
                     if not errorFin:
-                        emparejar(tokenActual.tipo, symbol)
-                    if finArchivo:  # Fin de archivo
-                        tokenActual = Token("fin_archivo", "$", tokenActual.fila,
-                                            (tokenActual.columna + len(tokenActual.lexema)))
-                        break
-                    # if i == -2 and j == -2:  # Error lexico
-                    #     flagSintaxis == True
-                    if flagSintaxis:
-                        return
+                        # emparejar(tokenActual.tipo, symbol)
+                        if tokenActual.tipo == symbol:
+                            getNextToken()
+                            conjunto.clear()
+                        else:
+                            tokensEsperados = [symbol]
+                            for k in conjunto:
+                                tokensEsperados.append(k)
+                            if not errorFin:
+                                errorSintaxis([tokensEsperados])
 
+                if finArchivo:  # Fin de archivo
+                    if tokenActual.tipo != "end" and not seImprimioErrorFinArchivo:
+                        print(
+                            "<" + str(
+                                filaFinal) + ":1>" + " Error sintactico: se encontro final de archivo; se esperaba 'end'.")
+                        errorFin = True
+                        seImprimioErrorFinArchivo = True
+
+                    # tokenActual = Token("fin_archivo", "$", tokenActual.fila,
+                    #                     (tokenActual.columna + len(tokenActual.lexema)))
+                    break
+                # if i == -2 and j == -2:  # Error lexico
+                #     flagSintaxis == True
+                if flagSintaxis:
+                    return
             return
+        else:
+            for predicc in pd:
+                conjunto.add(predicc)
+
     tokensEsperados = []
     if "" not in PRIMEROS(N):
         for k in reglasPediccion[N]:
@@ -738,10 +760,17 @@ cod7 = '''loop{
 }
 '''
 
+cod8 = '''loop{
+    repeat 10:
+    {    print(100);
+
+}
+end'''
+
 main()
-# print(PRIMEROS("nexpr_mas"))
-# print(SIGUIENTES("lexpr"))
-# print(reglasPediccion["lexpr"])
+# print(PRIMEROS("stm_mas"))
+# print(SIGUIENTES("stm_mas"))
+# print(reglasPediccion["stm_mas"])
 
 # print("****")
 # for i in tokens:
