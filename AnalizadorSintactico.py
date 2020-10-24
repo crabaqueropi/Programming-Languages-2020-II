@@ -79,9 +79,9 @@ diccionarioTokens = {
 }
 
 noTerminales = ["prog", "var_decl", "var_decl_mas", "tipoDato", "fn_decl_list", "var_locales",
-                "stmt_block", "stm_mas", "stmt", "stmt_do_next", "stmt_while", "stmt_until",
-                "stmt_id_next", "lexpr", "nexpr_mas", "nexpr_mas_and", "nexpr_mas_or", "nexpr",
-                "rexpr", "rexpr_mas", "simple_expr", "simple_expr_mas", "term", "term_mas", "factor",
+                "stmt_block", "stmt_al_menos_uno", "stm_mas", "stmt", "stmt_do_next", "stmt_while", "stmt_until",
+                "stmt_id_next", "lexpr", "lexpr_2", "nexpr_mas", "nexpr_mas_2", "nexpr_mas_and", "nexpr_mas_or",
+                "nexpr", "rexpr", "rexpr_mas", "simple_expr", "simple_expr_mas", "term", "term_mas", "factor",
                 "factor_mas", "incr_decr", "argu", "argu_mas", "main_prog"]
 
 gramatica = {
@@ -97,8 +97,9 @@ gramatica = {
         [""]],
     "var_locales": [["var", "var_decl", "tk_puntoycoma"],
                     [""]],
-    "stmt_block": [["tk_llave_izq", "stm_mas", "tk_llave_der"],
+    "stmt_block": [["tk_llave_izq", "stmt_al_menos_uno", "tk_llave_der"],
                    ["stmt"]],
+    "stmt_al_menos_uno": [["stmt", "stm_mas"]],
     "stm_mas": [["stmt", "stm_mas"],
                 [""]],
     "stmt": [["print", "lexpr", "tk_puntoycoma"],
@@ -123,7 +124,7 @@ gramatica = {
                      ["stmt_until"]],
     "stmt_while": [["while", "tk_par_izq", "lexpr", "tk_par_der"]],
     "stmt_until": [["until", "tk_par_izq", "lexpr", "tk_par_der"]],
-    "stmt_id_next": [["tk_asignacion", "lexpr", "tk_puntoycoma"],
+    "stmt_id_next": [["tk_asignacion", "lexpr_2", "tk_puntoycoma"],
                      ["tk_sum_asig", "lexpr", "tk_puntoycoma"],
                      ["tk_res_asig", "lexpr", "tk_puntoycoma"],
                      ["tk_mul_asig", "lexpr", "tk_puntoycoma"],
@@ -132,6 +133,10 @@ gramatica = {
                      ["tk_incremento", "tk_puntoycoma"],
                      ["tk_decremento", "tk_puntoycoma"]],
     "lexpr": [["nexpr", "nexpr_mas"]],
+    "lexpr_2": [["nexpr", "nexpr_mas_2"]],
+    "nexpr_mas_2": [["and", "nexpr", "nexpr_mas_and"],
+                    ["or", "nexpr", "nexpr_mas_or"],
+                    [""]],
     "nexpr_mas": [["and", "nexpr", "nexpr_mas_and"],
                   ["or", "nexpr", "nexpr_mas_or"],
                   [""]],
@@ -597,8 +602,10 @@ def emparejar(token, token_esperado):
     else:
         errorSintaxis([[token_esperado]])
 
+
 conjunto = set()
 seImprimioErrorFinArchivo = False
+
 
 def nonTerminal(N):
     global tokenActual, finArchivo, flagSintaxis, conjunto, errorFin, seImprimioErrorFinArchivo
@@ -671,7 +678,7 @@ def main():
     # for linea in lineasSeparadas:
     #     lineas += linea
 
-    lineas = cod7
+    lineas = cod6
 
     analizarLexico(lineas)  # Llenar lista de tokens
 
@@ -767,10 +774,14 @@ cod8 = '''loop{
 }
 end'''
 
+cod9 = '''function @retornay:num (x:num, y:num)
+  {
+  }
+end'''
 main()
-# print(PRIMEROS("stm_mas"))
-# print(SIGUIENTES("stm_mas"))
-# print(reglasPediccion["stm_mas"])
+# print(PRIMEROS("lexpr_2"))
+# print(SIGUIENTES("lexpr_2"))
+# print(reglasPediccion["lexpr_2"])
 
 # print("****")
 # for i in tokens:
