@@ -1,5 +1,105 @@
 # Cristian Adolfo Baquero Pico
 
+#-----------------------------------------------
+#----------------   GRAMÁTICA   ----------------
+#-----------------------------------------------
+
+# (@ = epsilon)
+
+# prog	→	fn_decl_list   main_prog
+# var_decl	→	id   tk_dospuntos   tipoDato   var_decl_mas
+# var_decl_mas	→	tk_coma   id   tk_dospuntos   tipoDato    var_decl_mas
+# var_decl_mas	→	@
+# tipoDato	→	bool
+# tipoDato	→	num
+# fn_decl_list	→	function   fid   tk_dospuntos   tipoDato   tk_par_izq   var_decl   tk_par_der   var_locales   stmt_block   fn_decl_list
+# fn_decl_list	→	@
+# var_locales	→	var   var_decl   tk_puntoycoma
+# var_locales	→	@
+# stmt_block	→	tk_llave_izq   stmt_al_menos_uno   tk_llave_der
+# stmt_block	→	stmt
+# stmt_al_menos_uno	→	stmt   stm_mas
+# stm_mas	→	stmt   stm_mas
+# stm_mas	→	@
+# stmt	→	print   lexpr   tk_puntoycoma
+# stmt	→	input   id   tk_puntoycoma
+# stmt	→	when   tk_par_izq   lexpr   tk_par_der   do   stmt_block
+# stmt	→	if   tk_par_izq   lexpr   tk_par_der   do   stmt_block   else   stmt_block
+# stmt	→	unless   tk_par_izq   lexpr   tk_par_der   do   stmt_block
+# stmt	→	stmt_while   do   stmt_block
+# stmt	→	return   lexpr   tk_puntoycoma
+# stmt	→	stmt_until   do   stmt_block
+# stmt	→	loop   stmt_block
+# stmt	→	do   stmt_block   stmt_do_next
+# stmt	→	repeat   tk_num   tk_dospuntos   stmt_block
+# stmt	→	for   tk_par_izq   lexpr   tk_puntoycoma   lexpr   tk_puntoycoma   lexpr   tk_par_der   do   stmt_block
+# stmt	→	next   tk_puntoycoma
+# stmt	→	break   tk_puntoycoma
+# stmt	→	id   stmt_id_next
+# stmt	→	tk_decremento   id   tk_puntoycoma
+# stmt	→	tk_incremento   id   tk_puntoycoma
+# stmt_do_next	→	stmt_while
+# stmt_do_next	→	stmt_until
+# stmt_while	→	while   tk_par_izq   lexpr   tk_par_der
+# stmt_until	→	until   tk_par_izq   lexpr   tk_par_der
+# stmt_id_next	→	tk_asignacion   lexpr_2   tk_puntoycoma
+# stmt_id_next	→	tk_sum_asig   lexpr   tk_puntoycoma
+# stmt_id_next	→	tk_res_asig   lexpr   tk_puntoycoma
+# stmt_id_next	→	tk_mul_asig   lexpr   tk_puntoycoma
+# stmt_id_next	→	tk_div_asig   lexpr   tk_puntoycoma
+# stmt_id_next	→	tk_mod_asig   lexpr   tk_puntoycoma
+# stmt_id_next	→	tk_incremento   tk_puntoycoma
+# stmt_id_next	→	tk_decremento   tk_puntoycoma
+# lexpr	→	nexpr   nexpr_mas
+# lexpr_2	→	nexpr   nexpr_mas_2
+# nexpr_mas_2	→	and   nexpr   nexpr_mas_and
+# nexpr_mas_2	→	or    nexpr   nexpr_mas_or
+# nexpr_mas_2	→	@
+# nexpr_mas	→	and   nexpr   nexpr_mas_and
+# nexpr_mas	→	or    nexpr   nexpr_mas_or
+# nexpr_mas	→	@
+# nexpr_mas_and	→	and   nexpr   nexpr_mas_and
+# nexpr_mas_and	→	@
+# nexpr_mas_or	→	or   nexpr   nexpr_mas_or
+# nexpr_mas_or	→	@
+# nexpr	→	not   tk_par_izq   lexpr   tk_par_der
+# nexpr	→	rexpr
+# rexpr	→	simple_expr   rexpr_mas
+# rexpr_mas	→	tk_menor   simple_expr
+# rexpr_mas	→	tk_igualdad   simple_expr
+# rexpr_mas	→	tk_menor_igual   simple_expr
+# rexpr_mas	→	tk_mayor   simple_expr
+# rexpr_mas	→	tk_mayor_igual   simple_expr
+# rexpr_mas	→	tk_diferente   simple_expr
+# rexpr_mas	→	@
+# simple_expr	→	term   simple_expr_mas
+# simple_expr_mas	→	tk_mas   term   simple_expr_mas
+# simple_expr_mas	→	tk_menos   term   simple_expr_mas
+# simple_expr_mas	→	@
+# term	→	factor   term_mas
+# term_mas	→	tk_mul   factor   term_mas
+# term_mas	→	tk_div   factor   term_mas
+# term_mas	→	tk_mod   factor   term_mas
+# term_mas	→	@
+# factor	→	tk_num
+# factor	→	true
+# factor	→	false
+# factor	→	id   factor_mas
+# factor	→	incr_decr   id
+# factor	→	tk_par_izq   lexpr   tk_par_der
+# factor	→	fid   tk_par_izq   argu   tk_par_der
+# factor_mas	→	incr_decr
+# factor_mas	→	@
+# incr_decr	→	tk_incremento
+# incr_decr	→	tk_decremento
+# argu	→	lexpr   argu_mas
+# argu	→	@
+# argu_mas	→	tk_coma   lexpr   argu_mas
+# argu_mas	→	@
+# main_prog	→	var_locales   stm_mas   end
+
+#-----------------------------------------------
+
 import sys
 
 flagSintaxis = False
@@ -584,6 +684,9 @@ def errorSintaxis(lista_tokens_Esperados):
         except KeyError:
             pass
 
+        if token_found == "identificador":
+            token_found = tokenActual.lexema
+
         str_tmp = ""
         for tokenIndex in ordenLexicografico:
             if tokenIndex in esperadosAux:
@@ -673,12 +776,10 @@ def main():
         recursive_calls = []
         PRED(nt)
 
-    # lineasSeparadas = sys.stdin.readlines()
-    # lineas = ""
-    # for linea in lineasSeparadas:
-    #     lineas += linea
-
-    lineas = cod6
+    lineasSeparadas = sys.stdin.readlines()
+    lineas = ""
+    for linea in lineasSeparadas:
+        lineas += linea
 
     analizarLexico(lineas)  # Llenar lista de tokens
 
@@ -693,102 +794,5 @@ def main():
             # print(token)
 
 
-cod1 = '''## función min(x, y)
-function @min:num (x:num, y:num)
-  {
-  when ((x < y) == true) do return x;
-  return y;
-  }
-
-## función max(x, y)
-function @max:num (x:num, y:num)
-  {
-  if ((x < y) == false) do
-    {
-    return x;
-    }
-  else
-    {
-    return y;
-    }
-  }
-
-print @min(1,2);
-print @max(1,2);
-end
-'''
-
-cod2 = '''## función min(x, y)
-function @min:num (x:num, y:num)
-var menor:num, flag:bool;     # Las variables locales van antes del bloque
-  {
-  when ((x < y) == true) do return x;
-  return y;
-  }
-
-## función max(x, y) El bloque debe tener, como mínimo, una sentencia
-function @max:num (x:num, y:num)
-  {
-    print x+y;
-  }
-
-## función asignar(x, y) puede haber funciones de una única instrucción
-function @asignar:num (x:num, y:num)
-  x := y;
-
-end
-'''
-
-cod3 = '''## función retornay(x, y)
-function @retornay: (x:num, y:num)
-  {
-  return y;
-  }
-end
-'''
-
-cod4 = '''variable := 1;
-variable;
-end
-'''
-
-cod5 = '''variable := ;'''
-
-cod6 = '''var flag:bool;
-
-flag:=true;
-flag := not (flag and (not(false) or true)) + ;
-end'''
-
-cod7 = '''loop{
-    repeat 10:
-    {    print(100);
-
-}
-'''
-
-cod8 = '''loop{
-    repeat 10:
-    {    print(100);
-
-}
-end'''
-
-cod9 = '''function @retornay:num (x:num, y:num)
-  {
-  }
-end'''
 main()
-# print(PRIMEROS("lexpr_2"))
-# print(SIGUIENTES("lexpr_2"))
-# print(reglasPediccion["lexpr_2"])
 
-# print("****")
-# for i in tokens:
-#     print(i.tipo)
-
-# print(SIGUIENTES("lexpr"))
-
-# for keys, values in reglasPediccion.items():
-#     print(keys)
-#     print(values)
